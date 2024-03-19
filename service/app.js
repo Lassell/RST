@@ -12,20 +12,17 @@ const router = new Router({
   prefix: "/api",
 });
 
-function parseFile(fileName) {
+function parseSrtFile(fileName) {
   // 读取SRT文件
 
   const srtFilePath = path.join(__dirname, "/public/uploads/" + fileName);
   const srtContent = fs.readFileSync(srtFilePath, "utf8");
-
-  // console.log("srtContent", srtContent);
 
   // 分割字幕块
   const subtitleBlocks = srtContent.split("\r\n");
 
   // 解析每个字幕块
   const subtitles = subtitleBlocks.reduce((subtitles, block, index) => {
-    // console.log("insid", block, subtitles);
     const item = block.replaceAll(" ", "");
     if (item) {
       // index
@@ -73,12 +70,10 @@ const ApiRouter = () => async (ctx, next) => {
 
 router.post("/getRstFile", (ctx, next) => {
   try {
-    parseFile(ctx.request.files.file.newFilename);
-
     ctx.body = {
       success: true,
       message: "success",
-      data: parseFile(ctx.request.files.file.newFilename),
+      data: parseSrtFile(ctx.request.files.file.newFilename),
     };
   } catch (e) {
     ctx.body = {
