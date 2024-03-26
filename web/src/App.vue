@@ -15,6 +15,7 @@ type TableData = {
   imageList: UploadFile[];
 };
 
+const filePath = ref<string>("");
 const tableData = ref<TableData[]>([]);
 const srtContent = ref<any[]>([]);
 function handleSrtUpload(res: any) {
@@ -32,9 +33,10 @@ function handleSrtUpload(res: any) {
   }
 }
 
-function handleImageUpload(file: UploadFile, index: number) {
+function handleImageUpload(file: any, index: number) {
   const imageFile = {
     ...file,
+    url: filePath.value + file.name,
     uid: URL.createObjectURL(new Blob())
       .slice(-36)
       .toUpperCase() as unknown as number,
@@ -143,6 +145,11 @@ function buildJSONFile() {
         >生成文件</el-button
       >
     </div>
+    <div style="display: flex">
+      <label style="width: 120px; margin-right: 10px">文件夹目录</label>
+      <el-input v-model="filePath" style="width: 400px"></el-input>
+    </div>
+
     <el-table :data="tableData">
       <el-table-column label="匹配别名" prop="srtNumber">
         <template #default="{ row, $index }">
@@ -171,6 +178,7 @@ function buildJSONFile() {
             :limit="9"
             :multiple="true"
             :auto-upload="false"
+            :webkitdirectory="true"
             @change="handleImageUpload($event, $index)"
           >
           </el-upload>
