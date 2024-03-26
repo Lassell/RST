@@ -45,6 +45,7 @@ export default defineConfig((configEnv: ConfigEnv) => {
     server: {
       host: "0.0.0.0",
       port: 6300,
+      open: true,
     },
     resolve: {
       alias: {

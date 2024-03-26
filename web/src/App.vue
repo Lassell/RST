@@ -6,23 +6,45 @@ import {
   ElButton,
   UploadFile,
 } from "element-plus";
+import draftContent from "@/assets/draft_content.json";
+import draftMateInfo from "@/assets/draft_meta_info.json";
 import { downloadJSON } from "@/utils";
 
-const tableData = ref<any[]>([]);
+type TableData = {
+  srtIds: number[];
+  imageList: UploadFile[];
+};
+
+const tableData = ref<TableData[]>([]);
 const srtContent = ref<any[]>([]);
 function handleSrtUpload(res: any) {
-  console.log("srtContent:", res.data);
-  srtContent.value = res.data;
-  tableDataInit();
+  try {
+    srtContent.value = res.data.map((i: any) => ({
+      ...i,
+      id: URL.createObjectURL(new Blob([""]))
+        .slice(-36)
+        .toUpperCase(),
+    }));
+    console.log("srtContent:", srtContent.value);
+    tableDataInit();
+  } catch (error) {
+    console.log(error);
+  }
 }
 
 function handleImageUpload(file: UploadFile, index: number) {
-  console.log(file, index, 111111111);
-  tableData.value[index].imageList.push(file);
+  const imageFile = {
+    ...file,
+    uid: URL.createObjectURL(new Blob())
+      .slice(-36)
+      .toUpperCase() as unknown as number,
+  };
+  console.log("imageFile:", imageFile, index);
+  tableData.value[index].imageList.push(imageFile);
 }
 
 function tableDataInit() {
-  tableData.value = srtContent.value.map((item, index) => ({
+  tableData.value = srtContent.value.map((_item, index) => ({
     srtIds: [index],
     imageList: [],
   }));
@@ -59,7 +81,47 @@ function srtDownMethod(index: number) {
 }
 
 function buildJSONFile() {
-  downloadJSON(JSON.stringify(tableData.value), "draft_content.json");
+  console.log(tableData.value);
+  const draft_content = JSON.parse(JSON.stringify(draftContent));
+  const draft_meta_info = JSON.parse(JSON.stringify(draftMateInfo));
+  draft_meta_info.draft_materials = tableData.value.map((i, index) => ({
+    type: index,
+    value: i.imageList.map((image: UploadFile) => ({
+      ...draftMateInfo.draft_materials[0].value[0],
+      id: image.uid,
+      file_Path: image.url,
+      extra_info: image.name,
+      create_time: Math.floor(Date.now() / 1000),
+      import_time: Math.floor(Date.now() / 1000),
+      import_time_ms: Date.now(),
+    })),
+  }));
+
+  // draft_content  videos
+  draft_content.materials.videos = tableData.value
+    .reduce((t: UploadFile[], c) => {
+      t.concat(c.imageList);
+      return t;
+    }, [] as UploadFile[])
+    .map((image) => ({
+      ...draftContent.materials.videos[0],
+      id: image.uid,
+      path: image.url,
+      material_name: image.name,
+    }));
+
+  // draft_content  texts
+  draft_content.materials.texts = srtContent.value.map((text) => ({
+    ...draftContent.materials.texts[0],
+    id: text.id,
+    content: draftContent.materials.texts[0].content.replace(
+      /\[.+\]/gi,
+      text.text
+    ),
+  }));
+
+  downloadJSON(JSON.stringify(draft_meta_info), "draft_meta_info.json");
+  downloadJSON(JSON.stringify(draft_content), "draft_content.json");
 }
 </script>
 
