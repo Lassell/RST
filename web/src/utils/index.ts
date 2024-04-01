@@ -15,3 +15,26 @@ export function downloadJSON(data: any, fileName: string) {
   URL.revokeObjectURL(link.href);
   document.body.removeChild(link);
 }
+
+/**
+ * 转换时间
+ * @param {string} timeString 时间字符串
+ * @returns {number}
+ */
+export function convertTimeToMillis(timeString: string) {
+  console.log("timeString:", timeString);
+  const [time, milliseconds] = timeString.split(",");
+
+  console.log("time", time, milliseconds);
+  const [hours, minutes, seconds] = time
+    .split(":")
+    .map((component) => parseInt(component, 10));
+
+  return (
+    (hours * 3600000 +
+      minutes * 60000 +
+      seconds * 1000 +
+      Number(milliseconds)) *
+    1000
+  );
+}
