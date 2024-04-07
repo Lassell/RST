@@ -34,9 +34,7 @@ function handleSrtUpload(res: any) {
   try {
     srtContent.value = res.data.map((i: any) => ({
       ...i,
-      id: URL.createObjectURL(new Blob([""]))
-        .slice(-36)
-        .toUpperCase(),
+      id: URL.createObjectURL(new Blob()).slice(-36).toUpperCase(),
     }));
     console.log("srtContent.value", srtContent.value);
 
@@ -133,7 +131,7 @@ function buildJSONFile() {
         let duration = (c?.endTime || 0) - (c?.startTime || 0);
         t.push({
           ...draftContent.tracks[0].segments[0],
-          id: c.id,
+          id: URL.createObjectURL(new Blob()).slice(-36).toUpperCase(),
           material_id: c.image?.uid || "",
           target_timerange: {
             duration,
@@ -174,59 +172,77 @@ function buildJSONFile() {
   ];
 
   // draft_content  videos
-  draft_content.materials.videos = tableData.value
-    // .reduce((t: UploadFile[], c) => {
-    //   t.push(c.image as UploadFile);
-    //   return t;
-    // }, [] as UploadFile[])
-    .map((item, index) => ({
-      ...draftContent.materials.videos[0],
-      id: String(item.image?.uid),
-      path: item.image?.url as string,
-      material_name: item.image?.name,
-      duration:
-        draft_content.tracks[0].segments[index].target_timerange.duration,
-    }));
+  draft_content.materials.videos = tableData.value.map((item, index) => ({
+    ...draftContent.materials.videos[0],
+    id: String(item.image?.uid),
+    path: item.image?.url as string,
+    material_name: item.image?.name,
+    duration: draft_content.tracks[0].segments[index].target_timerange.duration,
+  }));
 
   // draft_content  texts
-  draft_content.materials.texts = srtContent.value.map((text) => ({
-    ...draftContent.materials.texts[0],
-    id: text.id,
-    content: draftContent.materials.texts[0].content.replace(
-      /\[.+\]/gi,
-      text.text
-    ),
-  }));
+  draft_content.materials.texts = srtContent.value.map((text) => {
+    console.log("------text----", text.text);
+
+    return {
+      ...draftContent.materials.texts[0],
+      id: text.id,
+      content: draftContent.materials.texts[0].content.replace(
+        /(?<=\>)[\u4e00-\u9fa5]+(?=\<\/)/gi,
+        text.text
+      ),
+    };
+  });
 
   downloadJSON(JSON.stringify(draft_meta_info), "draft_meta_info.json");
   downloadJSON(JSON.stringify(draft_content), "draft_content.json");
+}
+
+function handleChange() {
+  if (!filePath.value.endsWith("\\")) {
+    filePath.value = filePath.value + "\\";
+    return;
+  }
 }
 </script>
 
 <template>
   <div id="App">
     <div style="display: flex; justify-content: space-between; padding: 40px">
-      <div>
-        <div>上传SRT文件</div>
-        <el-upload
-          action="http://localhost:8006/api/getRstFile"
-          accept=".srt"
-          list-type="picture-card"
-          :show-file-list="false"
-          @success="handleSrtUpload"
-        >
-        </el-upload>
+      <div style="text-align: left; margin-right: 40px">
+        <div style="display: flex; margin-bottom: 20px">
+          <label style="width: 200px; margin-right: 10px"
+            >请先填写图片文件夹目录</label
+          >
+          <el-input
+            v-model="filePath"
+            style="width: 400px"
+            @change="handleChange"
+          ></el-input>
+        </div>
+        <div style="display: flex">
+          <label style="width: 200px; margin-right: 10px" v-if="filePath"
+            >上传SRT文件</label
+          >
+          <el-upload
+            action="http://localhost:8006/api/getRstFile"
+            accept=".srt"
+            list-type="picture-card"
+            :show-file-list="false"
+            @success="handleSrtUpload"
+            v-if="filePath"
+          >
+          </el-upload>
+        </div>
       </div>
-      <el-button style="margin: 40px auto" @click="buildJSONFile"
+      <el-button
+        style="margin: 40px auto"
+        @click="buildJSONFile"
+        v-if="filePath"
         >生成文件</el-button
       >
     </div>
-    <div style="display: flex">
-      <label style="width: 120px; margin-right: 10px">文件夹目录</label>
-      <el-input v-model="filePath" style="width: 400px"></el-input>
-    </div>
-
-    <el-table :data="tableData">
+    <el-table :data="tableData" v-if="filePath">
       <el-table-column label="匹配别名" prop="srtNumber">
         <template #default="{ row, $index }">
           <el-button v-if="$index" type="primary" @click="srtUpMethod($index)">
