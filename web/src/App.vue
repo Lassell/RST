@@ -36,8 +36,6 @@ function handleSrtUpload(res: any) {
       ...i,
       id: URL.createObjectURL(new Blob()).slice(-36).toUpperCase(),
     }));
-    console.log("srtContent.value", srtContent.value);
-
     tableDataInit();
   } catch (error) {
     console.log(error);
@@ -50,8 +48,8 @@ function handleImageUpload(file: any, index: number) {
     url: filePath.value + file.name,
     uid: URL.createObjectURL(new Blob()).slice(-36).toUpperCase(),
   };
-  console.log("imageFile:", imageFile, index);
   tableData.value[index].image = imageFile;
+  console.log(tableData.value);
 }
 
 function tableDataInit() {
@@ -96,21 +94,6 @@ function srtDownMethod(index: number) {
 function buildJSONFile() {
   const draft_content = JSON.parse(JSON.stringify(draftContent));
   const draft_meta_info = JSON.parse(JSON.stringify(draftMateInfo));
-  draft_meta_info.draft_materials = tableData.value.map((i, index) => ({
-    type: index,
-    value: [
-      {
-        ...draftMateInfo.draft_materials[0].value[0],
-        id: String(i.image?.uid || ""),
-        file_Path: i.image?.url || ("" as string),
-        extra_info: i.image?.name || "",
-        create_time: Math.floor(Date.now() / 1000),
-        import_time: Math.floor(Date.now() / 1000),
-        import_time_ms: Date.now(),
-      },
-    ],
-  }));
-
   tableData.value = tableData.value.map((item) => {
     return {
       ...item,
@@ -122,6 +105,36 @@ function buildJSONFile() {
       ),
     };
   });
+
+  draft_meta_info.draft_materials = [
+    {
+      type: 0,
+      value: tableData.value.map((i, index) => {
+        let duration = (i?.endTime || 0) - (i.startTime || 0);
+        if (index % 2) {
+          return {
+            ...draftMateInfo.draft_materials[0].value[0],
+            id: String(i.image?.uid || ""),
+            duration,
+            file_Path: i.image?.url || ("" as string),
+            extra_info: i.image?.name || "",
+            create_time: Math.floor(Date.now() / 1000),
+            import_time: Math.floor(Date.now() / 1000),
+            import_time_ms: Date.now(),
+          };
+        }
+
+        return {
+          ...draftMateInfo.draft_materials[0].value[1],
+          id: URL.createObjectURL(new Blob()).slice(-36).toUpperCase(),
+          create_time: Math.floor(Date.now() / 1000),
+          import_time: Math.floor(Date.now() / 1000),
+          import_time_ms: Date.now(),
+          duration,
+        };
+      }),
+    },
+  ];
 
   draft_content.tracks = [
     {
@@ -156,7 +169,12 @@ function buildJSONFile() {
                 convertTimeToMillis(srtContent.value[i].endTime) -
                 convertTimeToMillis(srtContent.value[i].startTime),
             },
-            source_timerange: null,
+            source_timerange: {
+              duration:
+                convertTimeToMillis(srtContent.value[i].endTime) -
+                convertTimeToMillis(srtContent.value[i].startTime),
+              start: 0,
+            },
           }))
         );
         return t;
@@ -182,8 +200,6 @@ function buildJSONFile() {
 
   // draft_content  texts
   draft_content.materials.texts = srtContent.value.map((text) => {
-    console.log("------text----", text.text);
-
     return {
       ...draftContent.materials.texts[0],
       id: text.id,
@@ -193,6 +209,9 @@ function buildJSONFile() {
       ),
     };
   });
+
+  // draft_content duration
+  draft_content.duration = tableData.value[tableData.value.length - 1].endTime;
 
   downloadJSON(JSON.stringify(draft_meta_info), "draft_meta_info.json");
   downloadJSON(JSON.stringify(draft_content), "draft_content.json");
