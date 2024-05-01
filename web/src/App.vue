@@ -207,7 +207,7 @@ function buildJSONFile() {
       ...draftContent.materials.texts[0],
       id: text.id,
       content: draftContent.materials.texts[0].content.replace(
-        /(?<=\>)[\u4e00-\u9fa5]+(?=\<\/)/gi,
+        /(?<=\>\[)[\u4e00-\u9fa5]+(?=\]\<\/)/gi,
         text.text
       ),
     };
