@@ -150,7 +150,10 @@ function buildJSONFile() {
             duration,
             start,
           },
-          source_timerange: null,
+          source_timerange: {
+            duration,
+            start: 0,
+          },
         });
         return t;
       }, [] as any),
