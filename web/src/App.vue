@@ -47,7 +47,7 @@ function handleLetterUpload(res: any) {
     tableData.value = res.data.map((item: number[]) => {
       return {
         id: [item.map((i) => srtContent.value[i - 1].id)],
-        srtIds: item,
+        srtIds: item.map((i) => i - 1),
         image: null,
       };
     });
@@ -297,7 +297,7 @@ function handleChange() {
             向上合并
           </el-button>
           <div v-for="index in row.srtIds" class="table-srt-text">
-            {{ srtContent[index - 1].text }}
+            {{ srtContent[index].text }}
           </div>
           <el-button
             v-if="row.srtIds.length > 1"
