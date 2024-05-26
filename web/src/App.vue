@@ -43,13 +43,17 @@ function handleSrtUpload(res: any) {
 }
 
 function handleLetterUpload(res: any) {
-  tableData.value = res.data.map((item: number[]) => {
-    return {
-      id: [item.map((i) => srtContent.value[i - 1].id)],
-      srtIds: item,
-      image: null,
-    };
-  });
+  try {
+    tableData.value = res.data.map((item: number[]) => {
+      return {
+        id: [item.map((i) => srtContent.value[i - 1].id)],
+        srtIds: item,
+        image: null,
+      };
+    });
+  } catch (error) {
+    console.error(error);
+  }
 
   console.log("tableData.value", tableData.value);
 }
@@ -293,7 +297,7 @@ function handleChange() {
             向上合并
           </el-button>
           <div v-for="index in row.srtIds" class="table-srt-text">
-            {{ srtContent[index].text }}
+            {{ srtContent[index - 1].text }}
           </div>
           <el-button
             v-if="row.srtIds.length > 1"
