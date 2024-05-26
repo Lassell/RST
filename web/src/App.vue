@@ -42,6 +42,18 @@ function handleSrtUpload(res: any) {
   }
 }
 
+function handleLetterUpload(res: any) {
+  tableData.value = res.data.map((item: number[]) => {
+    return {
+      id: [item.map((i) => srtContent.value[i - 1].id)],
+      srtIds: item,
+      image: null,
+    };
+  });
+
+  console.log("tableData.value", tableData.value);
+}
+
 function handleImageUpload(file: any, index: number) {
   const imageFile = {
     ...file,
@@ -243,21 +255,21 @@ function handleChange() {
           ></el-input>
         </div>
         <div style="display: flex">
-          <div style="display: flex">
-            <label style="width: 200px; margin-right: 10px" v-if="filePath"
-              >上传SRT文件</label
-            >
+          <div style="display: flex" v-if="filePath">
+            <label style="width: 200px; margin-right: 10px">上传SRT文件</label>
             <el-upload
               action="http://localhost:8006/api/getRstFile"
               accept=".srt"
               list-type="picture-card"
               :show-file-list="false"
               @success="handleSrtUpload"
-              v-if="filePath"
             >
             </el-upload>
           </div>
-          <div style="display: flex">
+          <div
+            style="display: flex; margin-left: 100px"
+            v-if="filePath && srtContent.length"
+          >
             <label style="width: 200px; margin-right: 10px" v-if="filePath"
               >上传字幕文件</label
             >
@@ -266,19 +278,13 @@ function handleChange() {
               accept=".txt"
               list-type="picture-card"
               :show-file-list="false"
-              @success="handleSrtUpload"
-              v-if="filePath"
+              @success="handleLetterUpload"
             >
             </el-upload>
           </div>
         </div>
       </div>
-      <el-button
-        style="margin: 40px auto"
-        @click="buildJSONFile"
-        v-if="filePath"
-        >生成文件</el-button
-      >
+      <el-button @click="buildJSONFile" v-if="filePath">生成文件</el-button>
     </div>
     <el-table :data="tableData" v-if="filePath">
       <el-table-column label="匹配别名" prop="srtNumber">

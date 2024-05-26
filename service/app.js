@@ -13,23 +13,23 @@ const router = new Router({
 });
 
 function removeUploadFile() {
-  const directoryPath = path.join(__dirname, "/public/uploads/"); // 指定文件夹路径
+  const directoryPath = path.join(__dirname, "/uploads/"); // 指定文件夹路径
 
   fs.readdir(directoryPath, (err, files) => {
     if (err) {
       return console.log("Unable to scan directory: " + err);
     }
     files.forEach((file) => {
-      // if (file !== ".gitignore") {
-      // 排除.gitignore文件
-      const currentPath = path.join(directoryPath, file);
-      fs.unlink(currentPath, (err) => {
-        if (err) {
-          return console.log("Error deleting file:", currentPath);
-        }
-        console.log("File deleted:", currentPath);
-      });
-      // }
+      if (file !== "placeholder.test") {
+        // 排除占位文件
+        const currentPath = path.join(directoryPath, file);
+        fs.unlink(currentPath, (err) => {
+          if (err) {
+            return console.log("Error deleting file:", currentPath);
+          }
+          console.log("File deleted:", currentPath);
+        });
+      }
     });
   });
 }
@@ -37,7 +37,7 @@ function removeUploadFile() {
 function parseSrtFile(fileName) {
   try {
     // 读取SRT文件
-    const srtFilePath = path.join(__dirname, "/public/uploads/" + fileName);
+    const srtFilePath = path.join(__dirname, "/uploads/" + fileName);
     const srtContent = fs.readFileSync(srtFilePath, "utf8");
 
     // 分割字幕块
@@ -83,43 +83,19 @@ function parseSrtFile(fileName) {
 function parseLetterFile(fileName) {
   try {
     // 读取SRT文件
-    const letterFilePath = path.join(__dirname, "/public/uploads/" + fileName);
+    const letterFilePath = path.join(__dirname, "/uploads/" + fileName);
     const letterContent = fs.readFileSync(letterFilePath, "utf8");
-    return letterContent;
-    // 分割字幕块
-    const subtitleBlocks = srtContent.split("\r\n");
-
-    // 解析每个字幕块
-    const subtitles = subtitleBlocks.reduce((subtitles, block, index) => {
-      const item = block.replaceAll(" ", "");
-      if (item) {
-        // index
-        if (Number(item)) {
-          subtitles.push({
-            index: Number(item),
-          });
-
-          return subtitles;
-        }
-
-        // time
-        if (!subtitles[subtitles.length - 1]?.startTime) {
-          const [startTime, endTime] = item.split("-->");
-          subtitles[subtitles.length - 1].startTime = startTime;
-          subtitles[subtitles.length - 1].endTime = endTime;
-          return subtitles;
-        }
-
-        if (!subtitles[subtitles.length - 1]?.text) {
-          subtitles[subtitles.length - 1].text = item;
-          return subtitles;
-        }
-      }
-      return subtitles;
+    // 分割段落
+    const paragraph = letterContent.split("$");
+    // 分割句子
+    let index = 1;
+    const sentence = paragraph.reduce((sentence, para) => {
+      const sen = para.split("\r\n");
+      sentence.push(sen.map(() => index++));
+      return sentence;
     }, []);
-
     // 输出解析后的数据
-    return subtitles;
+    return sentence;
   } catch (error) {
     console.log(error);
   }
@@ -157,7 +133,7 @@ router.post("/getRstFile", async (ctx, next) => {
   }
 });
 
-router.post("getLetterFile", async (ctx, next) => {
+router.post("/getLetterFile", async (ctx, next) => {
   try {
     ctx.body = {
       success: true,
