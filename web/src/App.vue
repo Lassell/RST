@@ -243,18 +243,34 @@ function handleChange() {
           ></el-input>
         </div>
         <div style="display: flex">
-          <label style="width: 200px; margin-right: 10px" v-if="filePath"
-            >上传SRT文件</label
-          >
-          <el-upload
-            action="http://localhost:8006/api/getRstFile"
-            accept=".srt"
-            list-type="picture-card"
-            :show-file-list="false"
-            @success="handleSrtUpload"
-            v-if="filePath"
-          >
-          </el-upload>
+          <div style="display: flex">
+            <label style="width: 200px; margin-right: 10px" v-if="filePath"
+              >上传SRT文件</label
+            >
+            <el-upload
+              action="http://localhost:8006/api/getRstFile"
+              accept=".srt"
+              list-type="picture-card"
+              :show-file-list="false"
+              @success="handleSrtUpload"
+              v-if="filePath"
+            >
+            </el-upload>
+          </div>
+          <div style="display: flex">
+            <label style="width: 200px; margin-right: 10px" v-if="filePath"
+              >上传字幕文件</label
+            >
+            <el-upload
+              action="http://localhost:8006/api/getLetterFile"
+              accept=".txt"
+              list-type="picture-card"
+              :show-file-list="false"
+              @success="handleSrtUpload"
+              v-if="filePath"
+            >
+            </el-upload>
+          </div>
         </div>
       </div>
       <el-button

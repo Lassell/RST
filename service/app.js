@@ -80,6 +80,51 @@ function parseSrtFile(fileName) {
   }
 }
 
+function parseLetterFile(fileName) {
+  try {
+    // 读取SRT文件
+    const letterFilePath = path.join(__dirname, "/public/uploads/" + fileName);
+    const letterContent = fs.readFileSync(letterFilePath, "utf8");
+    return letterContent;
+    // 分割字幕块
+    const subtitleBlocks = srtContent.split("\r\n");
+
+    // 解析每个字幕块
+    const subtitles = subtitleBlocks.reduce((subtitles, block, index) => {
+      const item = block.replaceAll(" ", "");
+      if (item) {
+        // index
+        if (Number(item)) {
+          subtitles.push({
+            index: Number(item),
+          });
+
+          return subtitles;
+        }
+
+        // time
+        if (!subtitles[subtitles.length - 1]?.startTime) {
+          const [startTime, endTime] = item.split("-->");
+          subtitles[subtitles.length - 1].startTime = startTime;
+          subtitles[subtitles.length - 1].endTime = endTime;
+          return subtitles;
+        }
+
+        if (!subtitles[subtitles.length - 1]?.text) {
+          subtitles[subtitles.length - 1].text = item;
+          return subtitles;
+        }
+      }
+      return subtitles;
+    }, []);
+
+    // 输出解析后的数据
+    return subtitles;
+  } catch (error) {
+    console.log(error);
+  }
+}
+
 const ApiRouter = () => async (ctx, next) => {
   try {
     const data = await next();
@@ -95,7 +140,7 @@ const ApiRouter = () => async (ctx, next) => {
   }
 };
 
-router.post("/getRstFile", (ctx, next) => {
+router.post("/getRstFile", async (ctx, next) => {
   try {
     ctx.body = {
       success: true,
@@ -112,8 +157,24 @@ router.post("/getRstFile", (ctx, next) => {
   }
 });
 
+router.post("getLetterFile", async (ctx, next) => {
+  try {
+    ctx.body = {
+      success: true,
+      message: "success",
+      data: parseLetterFile(ctx.request.files.file.newFilename),
+    };
+    removeUploadFile();
+  } catch (e) {
+    ctx.body = {
+      success: false,
+      message: "上传出错",
+      data: null,
+    };
+  }
+});
+
 router.use(ApiRouter());
-// router.use("/api", router.routes(), router.allowedMethods());
 
 app
   .use(
@@ -121,7 +182,7 @@ app
       multipart: true,
       jsonLimit: "5mb",
       formidable: {
-        uploadDir: path.join(__dirname, `/public/uploads/`), //上传文件存储目录
+        uploadDir: path.join(__dirname, `/uploads/`), //上传文件存储目录
         maxFileSize: 100 * 1024 * 1024, // 设置上传文件大小最大限制,
         keepExtensions: true, //允许保留后缀名
         multipart: true,
