@@ -86,12 +86,25 @@ function parseLetterFile(fileName) {
     const letterFilePath = path.join(__dirname, "/uploads/" + fileName);
     const letterContent = fs.readFileSync(letterFilePath, "utf8");
     // 分割段落
-    const paragraph = letterContent.split("$");
+    let paragraph = letterContent.split("$").map((i, index) => {
+      if (index > 0) {
+        return i.slice(2) + "\r\n";
+      }
+      return i + "\r\n";
+    });
+
+    paragraph = paragraph.slice(0, -1);
+
+    // return paragraph;
     // 分割句子
-    let index = 1;
+    let senIndex = 1;
     const sentence = paragraph.reduce((sentence, para) => {
-      const sen = para.split("\r\n");
-      sentence.push(sen.map(() => index++));
+      let sen = para.split("\r\n");
+      sen = sen.slice(0, -1);
+      const senIndexList = sen.map((i) => {
+        return senIndex++;
+      });
+      sentence.push(senIndexList);
       return sentence;
     }, []);
     // 输出解析后的数据
