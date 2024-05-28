@@ -333,6 +333,8 @@ function handleChange() {
   width: 100%;
 }
 
-.table-srt-text {
+:deep(.el-upload-list.el-upload-list--picture-card) :nth-child(2) {
+  width: 0px;
+  height: 0px;
 }
 </style>
