@@ -48,8 +48,10 @@ function parseSrtFile(fileName) {
       const item = block.replaceAll(" ", "");
       if (item) {
         // index
-
-        if (Number(item)) {
+        if (
+          Number(item) &&
+          (index === 0 || subtitles[subtitles.length - 1]?.text)
+        ) {
           subtitles.push({
             index: Number(item),
           });

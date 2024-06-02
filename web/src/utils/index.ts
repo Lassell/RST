@@ -22,10 +22,10 @@ export function downloadJSON(data: any, fileName: string) {
  * @returns {number}
  */
 export function convertTimeToMillis(timeString: string) {
-  console.log("timeString:", timeString);
+  // console.log("timeString:", timeString);
   const [time, milliseconds] = timeString.split(",");
 
-  console.log("time", time, milliseconds);
+  // console.log("time", time, milliseconds);
   const [hours, minutes, seconds] = time
     .split(":")
     .map((component) => parseInt(component, 10));
