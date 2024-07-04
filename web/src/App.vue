@@ -127,27 +127,26 @@ function buildJSONFile() {
       type: 0,
       value: tableData.value.map((i, index) => {
         let duration = (i?.endTime || 0) - (i.startTime || 0);
-        if (index % 2) {
-          return {
-            ...draftMateInfo.draft_materials[0].value[0],
-            id: String(i.image?.uid || ""),
-            duration,
-            file_Path: i.image?.url || ("" as string),
-            extra_info: i.image?.name || "",
-            create_time: Math.floor(Date.now() / 1000),
-            import_time: Math.floor(Date.now() / 1000),
-            import_time_ms: Date.now(),
-          };
-        }
-
+        // if (index % 2) {
         return {
-          ...draftMateInfo.draft_materials[0].value[1],
-          id: URL.createObjectURL(new Blob()).slice(-36).toUpperCase(),
+          ...draftMateInfo.draft_materials[0].value[0],
+          id: String(i.image?.uid || ""),
+          duration,
+          file_Path: i.image?.url || ("" as string),
+          extra_info: i.image?.name || "",
           create_time: Math.floor(Date.now() / 1000),
           import_time: Math.floor(Date.now() / 1000),
           import_time_ms: Date.now(),
-          duration,
         };
+        // }
+        // return {
+        //   ...draftMateInfo.draft_materials[0].value[1],
+        //   id: URL.createObjectURL(new Blob()).slice(-36).toUpperCase(),
+        //   create_time: Math.floor(Date.now() / 1000),
+        //   import_time: Math.floor(Date.now() / 1000),
+        //   import_time_ms: Date.now(),
+        //   duration,
+        // };
       }),
     },
   ];
